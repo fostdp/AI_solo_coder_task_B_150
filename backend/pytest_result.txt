@@ -1,0 +1,133 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\y\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+rootdir: D:\SOLO-2\AI_solo_coder_task_B_150\backend
+plugins: anyio-3.7.1, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 99 items
+
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_grid_analysis_returns_grid_data PASSED [  1%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_optimal_position_has_coordinates PASSED [  2%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_grid_points_have_required_fields PASSED [  3%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_center_position_more_stable_than_edge PASSED [  4%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_height_effect_returns_data PASSED [  5%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_higher_cargo_less_stable PASSED [  6%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_higher_cargo_lower_stability PASSED [  7%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_mass_effect_returns_data PASSED [  8%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_heavier_cargo_less_stable PASSED [  9%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_optimal_position_search PASSED [ 10%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_zero_payload PASSED [ 11%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_max_payload PASSED [ 12%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_minimum_grid_resolution PASSED [ 13%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_single_point_grid PASSED [ 14%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_extreme_inclination PASSED [ 15%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_tipping_boundary_identified PASSED [ 16%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_height_at_zero PASSED [ 17%]
+tests/test_cargo_stability.py::TestCargoStabilityBoundary::test_dangerous_zones_populated_for_heavy_load PASSED [ 18%]
+tests/test_cargo_stability.py::TestCargoStabilityAbnormal::test_negative_x_range PASSED [ 19%]
+tests/test_cargo_stability.py::TestCargoStabilityAbnormal::test_very_large_range PASSED [ 20%]
+tests/test_cargo_stability.py::TestCargoStabilityAbnormal::test_mass_effect_zero_to_heavy PASSED [ 21%]
+tests/test_cargo_stability.py::TestCargoStabilityAbnormal::test_height_effect_critical_height_detection PASSED [ 22%]
+tests/test_driving.py::TestDrivingNormal::test_initial_state_exists PASSED [ 23%]
+tests/test_driving.py::TestDrivingNormal::test_accelerate_increases_speed PASSED [ 24%]
+tests/test_driving.py::TestDrivingNormal::test_brake_reduces_speed PASSED [ 25%]
+tests/test_driving.py::TestDrivingNormal::test_steering_changes_turn_rate PASSED [ 26%]
+tests/test_driving.py::TestDrivingNormal::test_steering_left_negative_rate PASSED [ 27%]
+tests/test_driving.py::TestDrivingNormal::test_speed_override_sets_exact_speed PASSED [ 28%]
+tests/test_driving.py::TestDrivingNormal::test_inclination_override_sets_exact_angle PASSED [ 29%]
+tests/test_driving.py::TestDrivingNormal::test_physics_update_advances_crank PASSED [ 30%]
+tests/test_driving.py::TestDrivingNormal::test_physics_updates_distance PASSED [ 31%]
+tests/test_driving.py::TestDrivingNormal::test_reset_clears_state PASSED [ 32%]
+tests/test_driving.py::TestDrivingNormal::test_stopping_sets_braking_flag PASSED [ 33%]
+tests/test_driving.py::TestDrivingNormal::test_set_device_parameters PASSED [ 34%]
+tests/test_driving.py::TestDrivingNormal::test_steering_accumulates_inclination PASSED [ 35%]
+tests/test_driving.py::TestDrivingBoundary::test_speed_override_high_value PASSED [ 36%]
+tests/test_driving.py::TestDrivingBoundary::test_speed_override_negative PASSED [ 37%]
+tests/test_driving.py::TestDrivingBoundary::test_inclination_override_high_value PASSED [ 38%]
+tests/test_driving.py::TestDrivingBoundary::test_inclination_steering_clamped PASSED [ 39%]
+tests/test_driving.py::TestDrivingBoundary::test_acceleration_at_max PASSED [ 40%]
+tests/test_driving.py::TestDrivingBoundary::test_deceleration_reduces_speed PASSED [ 41%]
+tests/test_driving.py::TestDrivingBoundary::test_zero_dt_no_instant_change PASSED [ 42%]
+tests/test_driving.py::TestDrivingBoundary::test_very_large_dt_crank_wraps PASSED [ 43%]
+tests/test_driving.py::TestDrivingBoundary::test_stability_margin_normalized PASSED [ 44%]
+tests/test_driving.py::TestDrivingAbnormal::test_unknown_device_auto_creates PASSED [ 45%]
+tests/test_driving.py::TestDrivingAbnormal::test_control_with_all_zeros PASSED [ 46%]
+tests/test_driving.py::TestDrivingAbnormal::test_concurrent_controls_same_device PASSED [ 47%]
+tests/test_driving.py::TestDrivingAbnormal::test_reset_then_immediate_control PASSED [ 48%]
+tests/test_driving.py::TestDrivingAbnormal::test_subscribe_unsubscribe FAILED [ 49%]
+tests/test_driving.py::TestDrivingAbnormal::test_heading_always_wraps_0_360 PASSED [ 50%]
+tests/test_driving.py::TestDrivingAbnormal::test_driving_service_singleton PASSED [ 51%]
+tests/test_driving.py::TestDrivingAbnormal::test_singleton_alias_matches PASSED [ 52%]
+tests/test_driving.py::TestDrivingAbnormal::test_reset_preserves_parameters PASSED [ 53%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_all_four_eras_present PASSED [ 54%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_wooden_ox_slowest PASSED [ 55%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_cheetah_fastest PASSED [ 56%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_wooden_ox_highest_payload_ratio PASSED [ 57%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_wooden_ox_zero_autonomy PASSED [ 58%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_modern_robots_self_recovery PASSED [ 59%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_wooden_ox_quietest PASSED [ 60%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_radar_has_eight_axes PASSED [ 61%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_radar_data_has_all_eras PASSED [ 62%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_radar_normalized_values_in_range PASSED [ 63%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_timeline_has_five_events PASSED [ 64%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_timeline_starts_at_230ad PASSED [ 65%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_mechanism_comparison_has_all_eras PASSED [ 66%]
+tests/test_era_comparison.py::TestEraComparisonNormal::test_wooden_ox_pure_mechanism_type PASSED [ 67%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_params_affect_wooden_ox_obstacle PASSED [ 68%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_anymal_longest_autonomy PASSED [ 69%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_spot_highest_obstacle_clearing PASSED [ 70%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_wooden_ox_lowest_cost PASSED [ 71%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_all_sensing_capabilities_in_range PASSED [ 72%]
+tests/test_era_comparison.py::TestEraComparisonBoundary::test_radar_quietness_inverted PASSED [ 73%]
+tests/test_era_comparison.py::TestEraComparisonAbnormal::test_none_params_still_works PASSED [ 74%]
+tests/test_era_comparison.py::TestEraComparisonAbnormal::test_default_params_object PASSED [ 75%]
+tests/test_era_comparison.py::TestEraComparisonAbnormal::test_mechanism_with_params_adds_trajectory_data PASSED [ 76%]
+tests/test_era_comparison.py::TestEraComparisonAbnormal::test_timeline_events_have_required_fields PASSED [ 77%]
+tests/test_era_comparison.py::TestEraComparisonAbnormal::test_all_metrics_types_correct PASSED [ 78%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_compare_returns_all_three_transports PASSED [ 79%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_wooden_ox_obstacle_height_positive PASSED [ 80%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_wooden_ox_obstacle_higher_than_wheelbarrow PASSED [ 81%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_carriage_payload_greater_than_wheelbarrow PASSED [ 82%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_carriage_speed_greater_than_wooden_ox PASSED [ 83%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_all_metrics_in_range PASSED [ 84%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_compare_on_terrain_returns_all_transports PASSED [ 85%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_radar_data_structure PASSED [ 86%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_profiles_contain_chinese_names PASSED [ 87%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_rocky_terrain_reduces_adaptability PASSED [ 88%]
+tests/test_transport_comparison.py::TestTransportComparisonNormal::test_steeper_slope_reduces_stability PASSED [ 89%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_zero_obstacle_terrain PASSED [ 90%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_extreme_terrain_all_metrics_finite PASSED [ 91%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_very_small_crank_length PASSED [ 92%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_invalid_terrain_defaults_to_flat PASSED [ 93%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_heavy_payload_reduces_wooden_ox_obstacle PASSED [ 94%]
+tests/test_transport_comparison.py::TestTransportComparisonBoundary::test_muddy_terrain_reduces_friction_effect PASSED [ 95%]
+tests/test_transport_comparison.py::TestTransportComparisonAbnormal::test_missing_terrain_fields_uses_defaults PASSED [ 96%]
+tests/test_transport_comparison.py::TestTransportComparisonAbnormal::test_empty_terrain_data PASSED [ 97%]
+tests/test_transport_comparison.py::TestTransportComparisonAbnormal::test_negative_slope_handled PASSED [ 98%]
+tests/test_transport_comparison.py::TestTransportComparisonAbnormal::test_friction_above_one_handled PASSED [100%]
+
+================================== FAILURES ===================================
+_______________ TestDrivingAbnormal.test_subscribe_unsubscribe ________________
+tests\test_driving.py:234: in test_subscribe_unsubscribe
+    assert len(received) > 0, "订阅后应收到回调"
+E   AssertionError: 订阅后应收到回调
+E   assert 0 > 0
+E    +  where 0 = len([])
+============================== warnings summary ===============================
+tests/test_driving.py: 29 warnings
+  D:\SOLO-2\AI_solo_coder_task_B_150\backend\tests\..\app\services\driving_service.py:47: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+tests/test_driving.py: 1019 warnings
+  D:\SOLO-2\AI_solo_coder_task_B_150\backend\tests\..\app\services\driving_service.py:139: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    state.timestamp = datetime.utcnow()
+
+tests/test_driving.py::TestDrivingNormal::test_reset_clears_state
+tests/test_driving.py::TestDrivingAbnormal::test_reset_preserves_parameters
+  D:\SOLO-2\AI_solo_coder_task_B_150\backend\tests\..\app\services\driving_service.py:189: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    timestamp=datetime.utcnow(),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_driving.py::TestDrivingAbnormal::test_subscribe_unsubscribe
+================ 1 failed, 98 passed, 1050 warnings in 24.58s =================

@@ -179,31 +179,27 @@ class ObstacleAssessmentRequest(BaseModel):
     current_inclination: float = Field(default=0.0)
     current_speed: float = Field(default=30.0)
 
-
 class TransportTerrainProfile(BaseModel):
-    terrain_type: str = Field(default='flat', description="地形类型: flat/gentle_slope/steep_slope/rocky/muddy/stairs/obstacle")
+    terrain_type: str = Field(default='flat')
     slope: Optional[float] = None
     roughness: Optional[float] = None
     friction: Optional[float] = None
     obstacle_density: Optional[float] = None
 
-
 class CargoGridRequest(BaseModel):
     parameters: JansenParameters
     payload_mass: float = Field(default=150.0, ge=0.0, le=1000.0)
-    x_min: float = Field(default=-400.0, description="货箱X方向最小偏移mm")
-    x_max: float = Field(default=400.0, description="货箱X方向最大偏移mm")
-    z_min: float = Field(default=-150.0, description="货箱Z方向最小偏移mm")
-    z_max: float = Field(default=150.0, description="货箱Z方向最大偏移mm")
+    x_min: float = Field(default=-400.0)
+    x_max: float = Field(default=400.0)
+    z_min: float = Field(default=-150.0)
+    z_max: float = Field(default=150.0)
     grid_resolution: int = Field(default=15, ge=3, le=30)
     body_inclination: float = Field(default=0.0)
-
 
 class CargoOptimalRequest(BaseModel):
     parameters: JansenParameters
     payload_mass: float = Field(default=150.0)
     body_inclination: float = Field(default=0.0)
-
 
 class CargoHeightRequest(BaseModel):
     parameters: JansenParameters
@@ -214,7 +210,6 @@ class CargoHeightRequest(BaseModel):
     height_max: float = Field(default=800.0)
     num_steps: int = Field(default=10, ge=3, le=50)
 
-
 class CargoMassRequest(BaseModel):
     parameters: JansenParameters
     cargo_x: float = Field(default=0.0)
@@ -224,29 +219,27 @@ class CargoMassRequest(BaseModel):
     num_steps: int = Field(default=10, ge=3, le=30)
     body_inclination: float = Field(default=0.0)
 
-
 class DrivingControlInput(BaseModel):
     device_id: str = Field(default='woodox_001')
-    acceleration: float = Field(default=0.0, ge=-1.0, le=1.0, description="加速/减速: -1到1")
-    steering: float = Field(default=0.0, ge=-1.0, le=1.0, description="转向: -1左到1右")
-    brake: float = Field(default=0.0, ge=0.0, le=1.0, description="刹车: 0到1")
-    speed_override: Optional[float] = Field(default=None, description="直接设置曲柄转速°/s")
-    inclination_override: Optional[float] = Field(default=None, description="直接设置机身倾角°")
-
+    acceleration: float = Field(default=0.0, ge=-1.0, le=1.0)
+    steering: float = Field(default=0.0, ge=-1.0, le=1.0)
+    brake: float = Field(default=0.0, ge=0.0, le=1.0)
+    speed_override: Optional[float] = Field(default=None)
+    inclination_override: Optional[float] = Field(default=None)
 
 class DrivingState(BaseModel):
     device_id: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    crank_speed: float = Field(description="当前曲柄转速°/s")
-    crank_angle: float = Field(description="当前曲柄角度°")
-    walking_speed: float = Field(description="行走速度mm/s")
-    body_inclination: float = Field(description="机身倾角°")
-    turn_rate: float = Field(description="转向角速度°/s")
-    heading: float = Field(default=0.0, description="当前朝向角°")
-    position_x: float = Field(default=0.0, description="位置X mm")
-    position_y: float = Field(default=0.0, description="位置Y mm")
-    stability_margin: float = Field(default=0.0, description="当前稳定裕度mm")
+    crank_speed: float
+    crank_angle: float
+    walking_speed: float
+    body_inclination: float
+    turn_rate: float
+    heading: float = Field(default=0.0)
+    position_x: float = Field(default=0.0)
+    position_y: float = Field(default=0.0)
+    stability_margin: float = Field(default=0.0)
     is_moving: bool = Field(default=False)
     is_braking: bool = Field(default=False)
-    total_distance: float = Field(default=0.0, description="累计行走距离mm")
-    leg_states: dict = Field(default_factory=dict, description="各腿状态")
+    total_distance: float = Field(default=0.0)
+    leg_states: dict = Field(default_factory=dict)

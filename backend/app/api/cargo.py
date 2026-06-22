@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException
 import logging
 
 from app.models.schemas import (
+    JansenParameters,
     CargoGridRequest,
     CargoOptimalRequest,
     CargoHeightRequest,
@@ -13,8 +14,8 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/cargo", tags=["货箱稳定性分析"])
 
 
-@router.post("/stability-grid", summary="分析货箱位置网格稳定性（热力图数据）")
-async def analyze_cargo_stability_grid(request: CargoGridRequest = Body(...)):
+@router.post("/stability-grid", summary="货箱位置网格稳定性分析")
+async def analyze_stability_grid(request: CargoGridRequest):
     try:
         analyzer = CargoStabilityAnalyzer(request.parameters)
         result = analyzer.analyze_cargo_position_grid(
@@ -26,12 +27,12 @@ async def analyze_cargo_stability_grid(request: CargoGridRequest = Body(...)):
         )
         return result
     except Exception as e:
-        logger.error(f"货箱稳定性网格分析失败: {e}")
+        logger.error(f"网格稳定性分析失败: {e}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
 
 
-@router.post("/optimal-position", summary="寻找最优货箱装载位置")
-async def find_optimal_cargo_position(request: CargoOptimalRequest = Body(...)):
+@router.post("/optimal-position", summary="查找最优货箱位置")
+async def find_optimal_position(request: CargoOptimalRequest):
     try:
         analyzer = CargoStabilityAnalyzer(request.parameters)
         result = analyzer.find_optimal_cargo_position(
@@ -40,12 +41,12 @@ async def find_optimal_cargo_position(request: CargoOptimalRequest = Body(...)):
         )
         return result
     except Exception as e:
-        logger.error(f"寻找最优货箱位置失败: {e}")
-        raise HTTPException(status_code=500, detail=f"寻找失败: {str(e)}")
+        logger.error(f"最优位置查找失败: {e}")
+        raise HTTPException(status_code=500, detail=f"查找失败: {str(e)}")
 
 
-@router.post("/height-effect", summary="分析货箱高度对稳定性的影响")
-async def analyze_cargo_height_effect(request: CargoHeightRequest = Body(...)):
+@router.post("/height-effect", summary="货箱高度影响分析")
+async def analyze_height_effect(request: CargoHeightRequest):
     try:
         analyzer = CargoStabilityAnalyzer(request.parameters)
         result = analyzer.analyze_height_effect(
@@ -57,12 +58,12 @@ async def analyze_cargo_height_effect(request: CargoHeightRequest = Body(...)):
         )
         return result
     except Exception as e:
-        logger.error(f"货箱高度影响分析失败: {e}")
+        logger.error(f"高度影响分析失败: {e}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")
 
 
-@router.post("/mass-effect", summary="分析货箱质量对稳定性的影响")
-async def analyze_cargo_mass_effect(request: CargoMassRequest = Body(...)):
+@router.post("/mass-effect", summary="货箱质量影响分析")
+async def analyze_mass_effect(request: CargoMassRequest):
     try:
         analyzer = CargoStabilityAnalyzer(request.parameters)
         result = analyzer.analyze_mass_effect(
@@ -74,5 +75,5 @@ async def analyze_cargo_mass_effect(request: CargoMassRequest = Body(...)):
         )
         return result
     except Exception as e:
-        logger.error(f"货箱质量影响分析失败: {e}")
+        logger.error(f"质量影响分析失败: {e}")
         raise HTTPException(status_code=500, detail=f"分析失败: {str(e)}")

@@ -162,89 +162,26 @@ export const alertApi = {
 }
 
 export const comparisonApi = {
-  compareTransportObstacle: (terrain_type: string, parameters?: JansenParameters) =>
-    api.post('/comparison/transport/obstacle-clearing', { terrain_type, parameters }),
-
-  compareTransportByTerrain: (terrainType: string) =>
-    api.get('/comparison/transport/terrain', { params: { terrain_type: terrainType } }),
-
-  getTransportProfiles: (parameters?: JansenParameters) =>
-    api.get('/comparison/transport/profiles', { params: parameters }),
-
-  getTransportRadar: (terrainType: string = 'flat') =>
-    api.get('/comparison/transport/radar', { params: { terrain_type: terrainType } }),
-
-  getEraAllMetrics: (parameters?: JansenParameters) =>
-    api.get('/comparison/era/all-metrics', { params: parameters }),
-
-  getEraRadar: (parameters?: JansenParameters) =>
-    api.get('/comparison/era/radar', { params: parameters }),
-
-  getEraTimeline: () =>
-    api.get('/comparison/era/timeline'),
-
-  getEraMechanism: (parameters?: JansenParameters) =>
-    api.get('/comparison/era/mechanism', { params: parameters }),
+  compareTransportObstacle: (terrain_type: string, parameters?: JansenParameters) => api.post('/comparison/transport/obstacle-clearing', { terrain_type, parameters }),
+  compareTransportByTerrain: (terrainType: string) => api.get('/comparison/transport/terrain', { params: { terrain_type: terrainType } }),
+  getTransportProfiles: (parameters?: JansenParameters) => api.get('/comparison/transport/profiles', { params: parameters }),
+  getTransportRadar: (terrainType: string = 'flat') => api.get('/comparison/transport/radar', { params: { terrain_type: terrainType } }),
+  getEraAllMetrics: (parameters?: JansenParameters) => api.get('/comparison/era/all-metrics', { params: parameters }),
+  getEraRadar: (parameters?: JansenParameters) => api.get('/comparison/era/radar', { params: parameters }),
+  getEraTimeline: () => api.get('/comparison/era/timeline'),
+  getEraMechanism: (parameters?: JansenParameters) => api.get('/comparison/era/mechanism', { params: parameters }),
 }
-
 export const cargoApi = {
-  getStabilityGrid: (request: {
-    parameters: JansenParameters
-    payload_mass: number
-    x_min: number
-    x_max: number
-    z_min: number
-    z_max: number
-    grid_resolution: number
-    body_inclination?: number
-  }) =>
-    api.post('/cargo/stability-grid', request),
-
-  findOptimalPosition: (parameters: JansenParameters, payload_mass: number, body_inclination?: number) =>
-    api.post('/cargo/optimal-position', { parameters, payload_mass, body_inclination }),
-
-  getHeightEffect: (request: {
-    parameters: JansenParameters
-    payload_mass: number
-    cargo_x: number
-    cargo_z: number
-    height_min: number
-    height_max: number
-    num_steps: number
-  }) =>
-    api.post('/cargo/height-effect', request),
-
-  getMassEffect: (request: {
-    parameters: JansenParameters
-    cargo_x: number
-    cargo_z: number
-    mass_min: number
-    mass_max: number
-    num_steps: number
-    body_inclination?: number
-  }) =>
-    api.post('/cargo/mass-effect', request),
+  getStabilityGrid: (request: any) => api.post('/cargo/stability-grid', request),
+  findOptimalPosition: (parameters: JansenParameters, payload_mass: number, body_inclination?: number) => api.post('/cargo/optimal-position', { parameters, payload_mass, body_inclination }),
+  getHeightEffect: (request: any) => api.post('/cargo/height-effect', request),
+  getMassEffect: (request: any) => api.post('/cargo/mass-effect', request),
 }
-
 export const drivingApi = {
-  sendControl: (control: {
-    device_id: string
-    acceleration: number
-    steering: number
-    brake: number
-    speed_override?: number
-    inclination_override?: number
-  }) =>
-    api.post('/driving/control', control),
-
-  getState: (deviceId: string) =>
-    api.get(`/driving/state/${deviceId}`),
-
-  reset: (deviceId: string) =>
-    api.post(`/driving/reset/${deviceId}`),
-
-  setParams: (deviceId: string, parameters: JansenParameters) =>
-    api.post(`/driving/params/${deviceId}`, parameters),
+  sendControl: (control: any) => api.post('/driving/control', control),
+  getState: (deviceId: string) => api.get(`/driving/state/${deviceId}`),
+  reset: (deviceId: string) => api.post(`/driving/reset/${deviceId}`),
+  setParams: (deviceId: string, parameters: JansenParameters) => api.post(`/driving/params/${deviceId}`, parameters),
 }
 
 export const systemApi = {

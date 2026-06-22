@@ -1,14 +1,5 @@
 import { create } from 'zustand'
-import type {
-  SensorData,
-  Alert,
-  JansenParameters,
-  LinkageState,
-  DrivingState,
-  DrivingControlInput,
-  GamepadState,
-  CargoStabilityGridResult,
-} from '@/types'
+import type { SensorData, Alert, JansenParameters, LinkageState, DrivingState, GamepadState, CargoStabilityGridResult } from '@/types'
 
 interface AppState {
   selectedDevice: string
@@ -62,11 +53,11 @@ interface AppState {
   drivingWsConnected: boolean
   setDrivingWsConnected: (connected: boolean) => void
 
-  lastControlInput: DrivingControlInput | null
-  setLastControlInput: (input: DrivingControlInput | null) => void
+  lastControlInput: { acceleration: number; steering: number; brake: number } | null
+  setLastControlInput: (input: { acceleration: number; steering: number; brake: number } | null) => void
 
-  gamepadState: GamepadState
-  setGamepadState: (state: Partial<GamepadState>) => void
+  gamepadState: GamepadState | null
+  setGamepadState: (state: GamepadState | null) => void
 
   cargoGridResult: CargoStabilityGridResult | null
   setCargoGridResult: (result: CargoStabilityGridResult | null) => void
@@ -157,24 +148,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   lastControlInput: null,
   setLastControlInput: (input) => set({ lastControlInput: input }),
 
-  gamepadState: {
-    connected: false,
-    id: '',
-    axisX: 0,
-    axisY: 0,
-    axisZ: 0,
-    axisRz: 0,
-    buttonA: false,
-    buttonB: false,
-    buttonX: false,
-    buttonY: false,
-    buttonLeft: false,
-    buttonRight: false,
-    buttonStart: false,
-    buttonSelect: false,
-  },
-  setGamepadState: (state) =>
-    set((s) => ({ gamepadState: { ...s.gamepadState, ...state } })),
+  gamepadState: null,
+  setGamepadState: (state) => set({ gamepadState: state }),
 
   cargoGridResult: null,
   setCargoGridResult: (result) => set({ cargoGridResult: result }),

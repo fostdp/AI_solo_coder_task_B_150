@@ -31,8 +31,7 @@ import './index.css'
 
 const { Header, Sider, Content } = Layout
 
-type TabKey = 'realtime' | 'simulation' | 'analysis' | 'alerts' | 'history' | 'settings'
-  | 'transport_compare' | 'era_compare' | 'cargo_stability' | 'virtual_driving'
+type TabKey = 'realtime' | 'simulation' | 'analysis' | 'alerts' | 'history' | 'settings' | 'transport_comparison' | 'era_comparison' | 'cargo_stability' | 'virtual_driving'
 
 const menuItems: MenuProps['items'] = [
   { key: 'realtime', icon: <DashboardOutlined />, label: '实时监控' },
@@ -40,18 +39,13 @@ const menuItems: MenuProps['items'] = [
   { key: 'analysis', icon: <BarChartOutlined />, label: '越障分析' },
   { key: 'alerts', icon: <AlertOutlined />, label: '告警中心' },
   { key: 'history', icon: <DatabaseOutlined />, label: '历史数据' },
-  {
-    key: 'feature_group',
-    icon: <ExperimentOutlined />,
-    label: '扩展功能',
-    children: [
-      { key: 'transport_compare', icon: <SwapOutlined />, label: '古代运输工具对比' },
-      { key: 'era_compare', icon: <ClockCircleOutlined />, label: '跨时代机器人对比' },
-      { key: 'cargo_stability', icon: <UnorderedListOutlined />, label: '货箱装载稳定性' },
-      { key: 'virtual_driving', icon: <CarOutlined />, label: '虚拟驾驶体验' },
-    ],
-  },
   { key: 'settings', icon: <SettingOutlined />, label: '系统设置' },
+  { key: 'feature_group', icon: <SwapOutlined />, label: '扩展功能', children: [
+    { key: 'transport_comparison', icon: <SwapOutlined />, label: '运输工具对比' },
+    { key: 'era_comparison', icon: <ClockCircleOutlined />, label: '跨时代对比' },
+    { key: 'cargo_stability', icon: <UnorderedListOutlined />, label: '货箱稳定性' },
+    { key: 'virtual_driving', icon: <CarOutlined />, label: '虚拟驾驶' },
+  ]},
 ]
 
 const devices = [
@@ -197,10 +191,10 @@ function App() {
           </div>
         )
 
-      case 'transport_compare':
+      case 'transport_comparison':
         return <TransportComparison />
 
-      case 'era_compare':
+      case 'era_comparison':
         return <EraComparison />
 
       case 'cargo_stability':

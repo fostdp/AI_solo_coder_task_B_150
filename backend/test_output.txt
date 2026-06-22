@@ -1,0 +1,21 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.14.5, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\y\AppData\Local\Python\pythoncore-3.14-64\python.exe
+cachedir: .pytest_cache
+rootdir: D:\SOLO-2\AI_solo_coder_task_B_150\backend
+plugins: anyio-3.7.1, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 88 items
+
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_grid_analysis_returns_grid_data PASSED [  1%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_optimal_position_has_coordinates PASSED [  2%]
+tests/test_cargo_stability.py::TestCargoStabilityNormal::test_grid_points_have_required_fields FAILED [  3%]
+
+================================== FAILURES ===================================
+_______ TestCargoStabilityNormal.test_grid_points_have_required_fields ________
+tests\test_cargo_stability.py:37: in test_grid_points_have_required_fields
+    assert 'min_margin' in point
+E   AssertionError: assert 'min_margin' in {'avg_stability_margin': -207.87893836242847, 'is_stable': np.False_, 'min_stability_margin': -385.45209432822605, 'x': -200.0, ...}
+=========================== short test summary info ===========================
+FAILED tests/test_cargo_stability.py::TestCargoStabilityNormal::test_grid_points_have_required_fields
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+========================= 1 failed, 2 passed in 1.39s =========================
