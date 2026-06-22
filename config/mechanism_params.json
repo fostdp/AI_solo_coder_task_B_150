@@ -1,0 +1,78 @@
+{
+  "jansen_linkage": {
+    "description": "Jansen连杆机构几何参数",
+    "crank_length": 150.0,
+    "rocker_length": 250.0,
+    "coupler_length": 300.0,
+    "ground_link": 200.0,
+    "crank_speed": 30.0,
+    "foot_extension": 100.0
+  },
+  "mass_distribution": {
+    "description": "多体动力学质量分布 (kg)",
+    "body": 25.0,
+    "crank": 1.5,
+    "rocker": 2.0,
+    "coupler": 1.8,
+    "thigh": 1.2,
+    "shin": 0.8,
+    "foot": 0.5,
+    "payload_default": 0.0
+  },
+  "dimensions": {
+    "description": "机身尺寸 (mm)",
+    "body_length": 800.0,
+    "body_width": 300.0,
+    "body_height": 400.0,
+    "wheelbase": 400.0,
+    "track_width": 200.0,
+    "foot_radius": 15.0
+  },
+  "ground_contact": {
+    "description": "地面接触模型参数",
+    "friction_coefficients": {
+      "ice": 0.1,
+      "mud": 0.3,
+      "wet_grass": 0.35,
+      "gravel": 0.5,
+      "normal": 0.6,
+      "dry_grass": 0.65,
+      "wood": 0.7,
+      "concrete": 0.8,
+      "rubber": 0.9
+    },
+    "default_terrain": "normal",
+    "ground_stiffness": 10000.0,
+    "damping_coefficient": 100.0,
+    "contact_damping_threshold": 0.001
+  },
+  "com_adjustment": {
+    "description": "变重心控制参数",
+    "max_adjustment_speed": 50.0,
+    "adjustment_gain": 0.5,
+    "stability_threshold": 50.0,
+    "min_adjustment_margin": 5.0,
+    "payload_center_height": 300.0,
+    "inclination_compensation_factor": 0.5,
+    "mass_ratio_influence": 0.3
+  },
+  "stability": {
+    "description": "稳定性分析参数 (mm)",
+    "stability_margins": {
+      "excellent": 50.0,
+      "good": 30.0,
+      "marginal": 10.0,
+      "poor": 0.0
+    },
+    "critical_inclination_safety_factor": 0.6,
+    "stability_ellipsoid_resolution": 36
+  },
+  "alert_thresholds": {
+    "description": "告警阈值配置",
+    "inclination_exceeded": 15.0,
+    "mechanism_jammed": 5.0,
+    "sensor_fault_quality_score": 50.0,
+    "alert_cooldown_seconds": 60,
+    "required_consecutive_readings": 3
+  }
+}
