@@ -1,0 +1,5 @@
+user woodox
+topic write woodox/sensor/#
+topic read woodox/sensor/#
+
+pattern read $SYS/#
