@@ -1,0 +1,58 @@
+[
+  {
+    "device_id": "woodox_001",
+    "slave_id": 1,
+    "terrain": "flat",
+    "load": "normal",
+    "interval": 5,
+    "protocols": ["all"],
+    "api_url": "http://backend:8000",
+    "mqtt_broker": "mqtt-broker",
+    "mqtt_port": 1883,
+    "mqtt_topic": "woodox/sensor",
+    "crank_speed": 30.0,
+    "modbus_port": 502
+  },
+  {
+    "device_id": "woodox_002",
+    "slave_id": 2,
+    "terrain": "gentle_slope",
+    "load": "light",
+    "interval": 5,
+    "protocols": ["all"],
+    "api_url": "http://backend:8000",
+    "mqtt_broker": "mqtt-broker",
+    "mqtt_port": 1883,
+    "mqtt_topic": "woodox/sensor",
+    "crank_speed": 30.0,
+    "modbus_port": 502
+  },
+  {
+    "device_id": "woodox_003",
+    "slave_id": 3,
+    "terrain": "rocky",
+    "load": "heavy",
+    "interval": 5,
+    "protocols": ["all"],
+    "api_url": "http://backend:8000",
+    "mqtt_broker": "mqtt-broker",
+    "mqtt_port": 1883,
+    "mqtt_topic": "woodox/sensor",
+    "crank_speed": 30.0,
+    "modbus_port": 502
+  },
+  {
+    "device_id": "woodox_004",
+    "slave_id": 4,
+    "terrain": "obstacle",
+    "load": "overload",
+    "interval": 5,
+    "protocols": ["all"],
+    "api_url": "http://backend:8000",
+    "mqtt_broker": "mqtt-broker",
+    "mqtt_port": 1883,
+    "mqtt_topic": "woodox/sensor",
+    "crank_speed": 30.0,
+    "modbus_port": 502
+  }
+]
