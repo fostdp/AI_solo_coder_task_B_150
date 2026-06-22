@@ -9,27 +9,30 @@ from app.analysis.obstacle_analysis import ObstacleAnalyzer
 
 class TransportComparisonAnalyzer:
     WHEELBARROW_PARAMS = {
-        'wheel_radius': 400,
+        'wheel_radius': 350,
         'track_width': 0,
         'effective_track_width': 500,
-        'com_height': 800,
-        'mass': 80,
-        'payload_mass': 120,
-        'human_force': 300,
-        'approach_angle': 4,
+        'com_height': 900,
+        'mass': 40,
+        'payload_mass': 200,
+        'human_force': 500,
+        'approach_angle': 3,
+        'historical_source': '《三国志·蜀书·诸葛亮传》《后汉书》',
     }
 
     CARRIAGE_PARAMS = {
-        'wheel_radius': 600,
+        'wheel_radius': 700,
         'num_wheels': 4,
         'axle_width': 1500,
-        'com_height': 1200,
-        'mass': 200,
-        'payload_mass': 500,
-        'horse_pull_force': 1500,
+        'com_height': 1500,
+        'mass': 300,
+        'payload_mass': 600,
+        'horse_pull_force': 2000,
+        'num_horses': 2,
         'suspension_stiffness': 5000,
         'suspension_damping': 2000,
-        'approach_angle': 5,
+        'approach_angle': 6,
+        'historical_source': '《周礼·考工记》《史记·平准书》',
     }
 
     TERRAIN_PROFILES = {
@@ -40,6 +43,21 @@ class TransportComparisonAnalyzer:
         'muddy': {'slope': 5, 'roughness': 5, 'obstacle_density': 0, 'friction': 0.3},
         'stairs': {'slope': 30, 'roughness': 20, 'obstacle_density': 50, 'friction': 0.7},
         'obstacle': {'slope': 5, 'roughness': 30, 'obstacle_density': 60, 'friction': 0.6},
+    }
+
+    HISTORICAL_SOURCES = {
+        '木牛流马': {
+            'source': '《三国志·蜀书·后主传》《诸葛亮集·作木牛流马法》',
+            'description': '诸葛亮创制的木制机械运输工具，用于蜀汉时期',
+        },
+        '独轮车': {
+            'source': '《三国志·蜀书·诸葛亮传》《后汉书》',
+            'description': '古代单轮人力运输工具，相传由诸葛亮发明或改进',
+        },
+        '马车': {
+            'source': '《周礼·考工记》《史记·平准书》',
+            'description': '古代畜力运输工具，商周时期已广泛使用',
+        },
     }
 
     def __init__(self, params: Optional[JansenParameters] = None):
@@ -90,8 +108,10 @@ class TransportComparisonAnalyzer:
         track_w = wp['effective_track_width']
         com_h = wp['com_height']
         total_mass = wp['mass'] + wp['payload_mass']
+        approach_angle = wp['approach_angle']
 
-        max_obstacle_height = wheel_r * 0.6
+        approach_factor = 1.0 + np.radians(approach_angle) * 0.5
+        max_obstacle_height = wheel_r * 0.6 * approach_factor
         theta_critical = np.arctan(track_w / (2 * com_h))
         max_slope_angle = np.degrees(theta_critical) * 0.8
 
@@ -126,6 +146,8 @@ class TransportComparisonAnalyzer:
         wheel_r = cp['wheel_radius']
         com_h = cp['com_height']
         total_mass = cp['mass'] + cp['payload_mass']
+        num_horses = cp['num_horses']
+        total_pull_force = cp['horse_pull_force'] * num_horses
 
         max_obstacle_height = wheel_r * 0.3
         slope = terrain_profile.get('slope', 0)
@@ -142,7 +164,7 @@ class TransportComparisonAnalyzer:
         stability_on_slope = max(0, 1 - slope / max(max_slope_angle, 1))
         pass_probability = max(0, min(1, stability_on_slope * (1 - roughness / 60.0) * friction))
 
-        speed_on_flat = (cp['horse_pull_force'] / total_mass) * 800
+        speed_on_flat = (total_pull_force / total_mass) * 800
         speed_on_slope = speed_on_flat * max(0.2, 1 - slope / 12.0)
         payload_capacity = cp['payload_mass'] * (1 - slope / 20.0)
         energy_efficiency = 0.5 * friction * (1 - roughness / 80.0)
@@ -188,6 +210,8 @@ class TransportComparisonAnalyzer:
             '木牛流马': {
                 'type': 'legged',
                 'mechanism': 'Jansen linkage',
+                'historical_source': '《三国志·蜀书·后主传》《诸葛亮集·作木牛流马法》',
+                'description': '诸葛亮创制的木制机械运输工具，用于蜀汉时期',
                 'params': {
                     'crank_length': self.params.crank_length,
                     'rocker_length': self.params.rocker_length,
@@ -198,14 +222,19 @@ class TransportComparisonAnalyzer:
             '独轮车': {
                 'type': 'wheeled',
                 'mechanism': 'single_wheel',
+                'historical_source': self.WHEELBARROW_PARAMS['historical_source'],
                 'params': self.WHEELBARROW_PARAMS,
             },
             '马车': {
                 'type': 'wheeled',
                 'mechanism': 'multi_wheel_suspension',
+                'historical_source': self.CARRIAGE_PARAMS['historical_source'],
                 'params': self.CARRIAGE_PARAMS,
             },
         }
+
+    def get_historical_sources(self) -> dict:
+        return self.HISTORICAL_SOURCES
 
     def generate_radar_data(self, terrain_type: str = 'flat') -> dict:
         comparison = self.compare_on_terrain(terrain_type)

@@ -12,6 +12,65 @@ class CargoStabilityAnalyzer:
         self.linkage_solver = JansenLinkageSolver(params)
         self.dynamics = MultibodyDynamics(params)
 
+    def _evaluate_with_sway(
+        self,
+        cargo_x: float,
+        cargo_z: float,
+        payload_mass: float,
+        cargo_y: float = 0,
+        body_inclination: float = 0,
+        sway_amplitude: float = 0,
+        sway_directions: int = 8,
+    ) -> dict:
+        if sway_amplitude <= 0:
+            result = self._evaluate_stability_over_gait(
+                cargo_x, cargo_z, payload_mass, cargo_y, body_inclination, sway_amplitude=0
+            )
+            return {
+                'min_margin': result['min_stability_margin'],
+                'avg_margin': result['avg_stability_margin'],
+                'worst_case_position': {'x': cargo_x, 'z': cargo_z},
+                'all_positions': [{'x': cargo_x, 'z': cargo_z, 'min_margin': result['min_stability_margin']}],
+            }
+
+        direction_angles = np.linspace(0, 2 * np.pi, sway_directions, endpoint=False)
+        positions = [{'x': cargo_x, 'z': cargo_z}]
+
+        for angle in direction_angles:
+            dx = sway_amplitude * np.cos(angle)
+            dz = sway_amplitude * np.sin(angle)
+            positions.append({'x': cargo_x + dx, 'z': cargo_z + dz})
+
+        all_results = []
+        min_margin = float('inf')
+        avg_margin = 0.0
+        worst_position = {'x': cargo_x, 'z': cargo_z}
+
+        for pos in positions:
+            result = self._evaluate_stability_over_gait(
+                pos['x'], pos['z'], payload_mass, cargo_y, body_inclination, sway_amplitude=0
+            )
+            pos_min = result['min_stability_margin']
+            all_results.append({
+                'x': pos['x'],
+                'z': pos['z'],
+                'min_margin': pos_min,
+                'avg_margin': result['avg_stability_margin'],
+            })
+            avg_margin += pos_min
+            if pos_min < min_margin:
+                min_margin = pos_min
+                worst_position = {'x': pos['x'], 'z': pos['z']}
+
+        avg_margin /= len(all_results) if all_results else 1
+
+        return {
+            'min_margin': float(min_margin),
+            'avg_margin': float(avg_margin),
+            'worst_case_position': worst_position,
+            'all_positions': all_results,
+        }
+
     def _evaluate_stability_over_gait(
         self,
         cargo_x: float,
@@ -19,10 +78,35 @@ class CargoStabilityAnalyzer:
         payload_mass: float,
         cargo_y: float = 0,
         body_inclination: float = 0,
+        sway_amplitude: float = 0,
     ) -> dict:
+        if sway_amplitude > 0:
+            sway_result = self._evaluate_with_sway(
+                cargo_x, cargo_z, payload_mass, cargo_y, body_inclination, sway_amplitude
+            )
+            nominal_result = self._evaluate_stability_over_gait(
+                cargo_x, cargo_z, payload_mass, cargo_y, body_inclination, sway_amplitude=0
+            )
+            nominal_margin = nominal_result['min_stability_margin']
+            reduction = 0.0
+            if nominal_margin > 0:
+                reduction = float((nominal_margin - sway_result['min_margin']) / nominal_margin * 100)
+            return {
+                'min_stability_margin': sway_result['min_margin'],
+                'avg_stability_margin': sway_result['avg_margin'],
+                'is_stable': sway_result['min_margin'] > 0,
+                'com': nominal_result['com'],
+                'zmp': nominal_result['zmp'],
+                'sway_amplitude_used': sway_amplitude,
+                'worst_case_position': sway_result['worst_case_position'],
+                'stability_reduction_percent': reduction,
+            }
+
         min_margin = float('inf')
         avg_margin = 0.0
         margins = []
+        last_com = None
+        last_zmp = None
 
         for crank_angle in range(0, 360, 10):
             self.params.payload_mass = payload_mass
@@ -47,6 +131,8 @@ class CargoStabilityAnalyzer:
             margins.append(margin)
             min_margin = min(min_margin, margin)
             avg_margin += margin
+            last_com = total_com
+            last_zmp = zmp
 
         avg_margin /= len(margins) if margins else 1
 
@@ -54,8 +140,8 @@ class CargoStabilityAnalyzer:
             'min_stability_margin': float(min_margin),
             'avg_stability_margin': float(avg_margin),
             'is_stable': min_margin > 0,
-            'com': total_com.model_dump() if hasattr(total_com, 'model_dump') else {},
-            'zmp': zmp.model_dump() if hasattr(zmp, 'model_dump') else {},
+            'com': last_com.model_dump() if hasattr(last_com, 'model_dump') else {},
+            'zmp': last_zmp.model_dump() if hasattr(last_zmp, 'model_dump') else {},
         }
 
     def analyze_cargo_position_grid(
@@ -65,6 +151,7 @@ class CargoStabilityAnalyzer:
         z_range: Tuple[float, float] = (-150, 150),
         grid_resolution: int = 15,
         body_inclination: float = 0,
+        sway_amplitude: float = 0,
     ) -> dict:
         x_points = np.linspace(x_range[0], x_range[1], grid_resolution)
         z_points = np.linspace(z_range[0], z_range[1], grid_resolution)
@@ -79,7 +166,8 @@ class CargoStabilityAnalyzer:
             row = []
             for zi in z_points:
                 result = self._evaluate_stability_over_gait(
-                    float(xi), float(zi), payload_mass, body_inclination=body_inclination
+                    float(xi), float(zi), payload_mass, body_inclination=body_inclination,
+                    sway_amplitude=sway_amplitude
                 )
                 cell = {
                     'x': float(xi),
@@ -88,6 +176,9 @@ class CargoStabilityAnalyzer:
                     'avg_stability_margin': result['avg_stability_margin'],
                     'is_stable': result['is_stable'],
                 }
+                if sway_amplitude > 0:
+                    cell['worst_case_position'] = result.get('worst_case_position')
+                    cell['stability_reduction_percent'] = result.get('stability_reduction_percent')
                 row.append(cell)
                 grid.append(cell)
 
@@ -122,17 +213,21 @@ class CargoStabilityAnalyzer:
                 if near_danger:
                     safe_zone_boundary.append(sp)
 
-        return {
+        result_dict = {
             'grid': grid,
             'optimal_position': optimal_position,
             'dangerous_zones': dangerous_zones,
             'safe_zone_boundary': safe_zone_boundary,
         }
+        if sway_amplitude > 0:
+            result_dict['sway_amplitude_used'] = sway_amplitude
+        return result_dict
 
     def find_optimal_cargo_position(
         self,
         payload_mass: float = 150,
         body_inclination: float = 0,
+        sway_amplitude: float = 0,
     ) -> dict:
         coarse_x = np.linspace(-400, 400, 7)
         coarse_z = np.linspace(-150, 150, 7)
@@ -143,7 +238,8 @@ class CargoStabilityAnalyzer:
         for xi in coarse_x:
             for zi in coarse_z:
                 result = self._evaluate_stability_over_gait(
-                    float(xi), float(zi), payload_mass, body_inclination=body_inclination
+                    float(xi), float(zi), payload_mass, body_inclination=body_inclination,
+                    sway_amplitude=sway_amplitude
                 )
                 if result['min_stability_margin'] > best_margin:
                     best_margin = result['min_stability_margin']
@@ -159,7 +255,8 @@ class CargoStabilityAnalyzer:
         for xi in fine_x:
             for zi in fine_z:
                 result = self._evaluate_stability_over_gait(
-                    float(xi), float(zi), payload_mass, body_inclination=body_inclination
+                    float(xi), float(zi), payload_mass, body_inclination=body_inclination,
+                    sway_amplitude=sway_amplitude
                 )
                 if result['min_stability_margin'] > best_margin:
                     best_margin = result['min_stability_margin']
@@ -167,16 +264,22 @@ class CargoStabilityAnalyzer:
                     best_z = float(zi)
 
         final_result = self._evaluate_stability_over_gait(
-            best_x, best_z, payload_mass, body_inclination=body_inclination
+            best_x, best_z, payload_mass, body_inclination=body_inclination,
+            sway_amplitude=sway_amplitude
         )
 
-        return {
+        result_dict = {
             'optimal_x': best_x,
             'optimal_z': best_z,
             'stability_margin': best_margin,
             'is_stable': final_result['is_stable'],
             'avg_stability_margin': final_result['avg_stability_margin'],
         }
+        if sway_amplitude > 0:
+            result_dict['sway_amplitude_used'] = sway_amplitude
+            result_dict['worst_case_position'] = final_result.get('worst_case_position')
+            result_dict['stability_reduction_percent'] = final_result.get('stability_reduction_percent')
+        return result_dict
 
     def analyze_height_effect(
         self,
@@ -185,20 +288,26 @@ class CargoStabilityAnalyzer:
         cargo_z: float = 0,
         height_range: Tuple[float, float] = (100, 800),
         num_steps: int = 10,
+        sway_amplitude: float = 0,
     ) -> dict:
         heights = np.linspace(height_range[0], height_range[1], num_steps)
         results = []
 
         for h in heights:
             result = self._evaluate_stability_over_gait(
-                cargo_x, cargo_z, payload_mass, cargo_y=float(h)
+                cargo_x, cargo_z, payload_mass, cargo_y=float(h),
+                sway_amplitude=sway_amplitude
             )
-            results.append({
+            entry = {
                 'height': float(h),
                 'min_stability_margin': result['min_stability_margin'],
                 'avg_stability_margin': result['avg_stability_margin'],
                 'is_stable': result['is_stable'],
-            })
+            }
+            if sway_amplitude > 0:
+                entry['worst_case_position'] = result.get('worst_case_position')
+                entry['stability_reduction_percent'] = result.get('stability_reduction_percent')
+            results.append(entry)
 
         critical_height = None
         for i in range(len(results) - 1):
@@ -206,11 +315,14 @@ class CargoStabilityAnalyzer:
                 critical_height = (results[i]['height'] + results[i + 1]['height']) / 2
                 break
 
-        return {
+        result_dict = {
             'height_analysis': results,
             'critical_height': critical_height,
             'recommended_max_height': float(height_range[1]) if critical_height is None else critical_height,
         }
+        if sway_amplitude > 0:
+            result_dict['sway_amplitude_used'] = sway_amplitude
+        return result_dict
 
     def analyze_mass_effect(
         self,
@@ -219,20 +331,26 @@ class CargoStabilityAnalyzer:
         mass_range: Tuple[float, float] = (0, 500),
         num_steps: int = 10,
         body_inclination: float = 0,
+        sway_amplitude: float = 0,
     ) -> dict:
         masses = np.linspace(mass_range[0], mass_range[1], num_steps)
         results = []
 
         for m in masses:
             result = self._evaluate_stability_over_gait(
-                cargo_x, cargo_z, float(m), body_inclination=body_inclination
+                cargo_x, cargo_z, float(m), body_inclination=body_inclination,
+                sway_amplitude=sway_amplitude
             )
-            results.append({
+            entry = {
                 'mass': float(m),
                 'min_stability_margin': result['min_stability_margin'],
                 'avg_stability_margin': result['avg_stability_margin'],
                 'is_stable': result['is_stable'],
-            })
+            }
+            if sway_amplitude > 0:
+                entry['worst_case_position'] = result.get('worst_case_position')
+                entry['stability_reduction_percent'] = result.get('stability_reduction_percent')
+            results.append(entry)
 
         critical_mass = None
         for i in range(len(results) - 1):
@@ -240,8 +358,128 @@ class CargoStabilityAnalyzer:
                 critical_mass = (results[i]['mass'] + results[i + 1]['mass']) / 2
                 break
 
-        return {
+        result_dict = {
             'mass_analysis': results,
             'critical_mass': critical_mass,
             'recommended_max_mass': float(mass_range[1]) if critical_mass is None else critical_mass,
+        }
+        if sway_amplitude > 0:
+            result_dict['sway_amplitude_used'] = sway_amplitude
+        return result_dict
+
+    def analyze_sway_sensitivity(
+        self,
+        cargo_x: float = 0,
+        cargo_z: float = 0,
+        payload_mass: float = 150,
+        cargo_y: float = 0,
+        body_inclination: float = 0,
+        max_sway: float = 100,
+        num_steps: int = 10,
+    ) -> dict:
+        sway_values = np.linspace(0, max_sway, num_steps)
+        results = []
+
+        for sway in sway_values:
+            sway_result = self._evaluate_with_sway(
+                cargo_x, cargo_z, payload_mass, cargo_y, body_inclination, float(sway)
+            )
+            worst_pos = sway_result['worst_case_position']
+            dx = worst_pos['x'] - cargo_x
+            dz = worst_pos['z'] - cargo_z
+            if abs(dx) < 1e-9 and abs(dz) < 1e-9:
+                worst_direction = 'center'
+            else:
+                angle = np.arctan2(dz, dx)
+                angle_deg = float(np.degrees(angle)) % 360
+                direction_names = [
+                    (0, 'east'),
+                    (45, 'northeast'),
+                    (90, 'north'),
+                    (135, 'northwest'),
+                    (180, 'west'),
+                    (225, 'southwest'),
+                    (270, 'south'),
+                    (315, 'southeast'),
+                ]
+                closest_dir = 'east'
+                min_diff = 360
+                for target_angle, name in direction_names:
+                    diff = abs(angle_deg - target_angle)
+                    if diff > 180:
+                        diff = 360 - diff
+                    if diff < min_diff:
+                        min_diff = diff
+                        closest_dir = name
+                worst_direction = closest_dir
+
+            results.append({
+                'sway_amplitude': float(sway),
+                'min_margin': sway_result['min_margin'],
+                'avg_margin': sway_result['avg_margin'],
+                'is_stable': sway_result['min_margin'] > 0,
+                'worst_direction': worst_direction,
+                'worst_case_position': worst_pos,
+            })
+
+        critical_sway = None
+        for i in range(len(results) - 1):
+            if results[i]['is_stable'] and not results[i + 1]['is_stable']:
+                critical_sway = (results[i]['sway_amplitude'] + results[i + 1]['sway_amplitude']) / 2
+                break
+
+        return {
+            'sway_analysis': results,
+            'critical_sway_amplitude': critical_sway,
+            'max_sway_tested': float(max_sway),
+            'num_steps': num_steps,
+        }
+
+    def analyze_cargo_sway_grid(
+        self,
+        cargo_x: float = 0,
+        cargo_z: float = 0,
+        cargo_y: float = 0,
+        body_inclination: float = 0,
+        mass_range: Tuple[float, float] = (0, 500),
+        sway_range: Tuple[float, float] = (0, 100),
+        mass_steps: int = 10,
+        sway_steps: int = 10,
+    ) -> dict:
+        masses = np.linspace(mass_range[0], mass_range[1], mass_steps)
+        sway_values = np.linspace(sway_range[0], sway_range[1], sway_steps)
+
+        grid = []
+        contour_data = []
+
+        for m in masses:
+            row = []
+            for s in sway_values:
+                sway_result = self._evaluate_with_sway(
+                    cargo_x, cargo_z, float(m), cargo_y, body_inclination, float(s)
+                )
+                cell = {
+                    'mass': float(m),
+                    'sway_amplitude': float(s),
+                    'min_margin': sway_result['min_margin'],
+                    'avg_margin': sway_result['avg_margin'],
+                    'is_stable': sway_result['min_margin'] > 0,
+                    'worst_case_position': sway_result['worst_case_position'],
+                }
+                row.append(cell)
+                grid.append(cell)
+            contour_data.append(row)
+
+        stable_count = sum(1 for cell in grid if cell['is_stable'])
+        total_count = len(grid)
+        stability_ratio = stable_count / total_count if total_count > 0 else 0
+
+        return {
+            'grid': grid,
+            'contour_data': contour_data,
+            'masses': [float(m) for m in masses],
+            'sway_amplitudes': [float(s) for s in sway_values],
+            'stability_ratio': stability_ratio,
+            'mass_range': mass_range,
+            'sway_range': sway_range,
         }
