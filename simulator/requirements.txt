@@ -1,0 +1,4 @@
+pymodbus==3.6.6
+aiohttp==3.9.1
+numpy==1.26.3
+paho-mqtt==1.6.1
