@@ -1,0 +1,435 @@
+version: '3.8'
+
+# ============================================================
+# 古代木牛流马行走机构仿真与越障能力分析系统
+# 微服务架构编排
+# ============================================================
+
+services:
+  # ============== 基础设施 ==============
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: woodox-influxdb
+    hostname: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: admin
+      DOCKER_INFLUXDB_INIT_PASSWORD: woodox2024
+      DOCKER_INFLUXDB_INIT_ORG: wood-ox-research
+      DOCKER_INFLUXDB_INIT_BUCKET: sensor_raw
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: woodox-secret-token-2024
+      INFLUXDB_DATA_MAX_VALUES_PER_TAG: 0
+      INFLUXDB_DATA_MAX_SERIES_PER_DATABASE: 0
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - ./influxdb/scripts:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - woodox-net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: woodox-redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - woodox-net
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0.18-openssl
+    container_name: woodox-mqtt
+    hostname: mqtt-broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+      - mqtt-log:/mosquitto/log
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -W 2 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - woodox-net
+
+  # ============== 后端 API 网关 ==============
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-backend
+    hostname: backend
+    working_dir: /app
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      APP_PORT: 8000
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: woodox-secret-token-2024
+      INFLUXDB_ORG: wood-ox-research
+      INFLUXDB_BUCKET: sensor_raw
+      REDIS_URL: redis://redis:6379/0
+      CONFIG_DIR: /app/config
+      GUNICORN_WORKERS: 4
+      GUNICORN_LOG_LEVEL: info
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+      - ./backend/logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - woodox-net
+
+  # ============== 分布式微服务 (可选) ==============
+
+  modbus-receiver:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-modbus-receiver
+    hostname: modbus-receiver
+    working_dir: /app
+    command: python -m microservices.modbus_receiver
+    environment:
+      APP_ENV: production
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: woodox-secret-token-2024
+      INFLUXDB_ORG: wood-ox-research
+      INFLUXDB_BUCKET: sensor_raw
+      REDIS_URL: redis://redis:6379/0
+      CONFIG_DIR: /app/config
+      POLL_INTERVAL: 5
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    profiles:
+      - distributed
+    networks:
+      - woodox-net
+
+  walking-simulator:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-walking-simulator
+    hostname: walking-simulator
+    working_dir: /app
+    command: python -m microservices.walking_simulator
+    environment:
+      APP_ENV: production
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: woodox-secret-token-2024
+      INFLUXDB_ORG: wood-ox-research
+      INFLUXDB_BUCKET: sensor_raw
+      REDIS_URL: redis://redis:6379/0
+      CONFIG_DIR: /app/config
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    profiles:
+      - distributed
+    networks:
+      - woodox-net
+
+  obstacle-analyzer:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-obstacle-analyzer
+    hostname: obstacle-analyzer
+    working_dir: /app
+    command: python -m microservices.obstacle_analyzer
+    environment:
+      APP_ENV: production
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: woodox-secret-token-2024
+      INFLUXDB_ORG: wood-ox-research
+      INFLUXDB_BUCKET: sensor_raw
+      REDIS_URL: redis://redis:6379/0
+      CONFIG_DIR: /app/config
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    profiles:
+      - distributed
+    networks:
+      - woodox-net
+
+  alarm-ws:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-alarm-ws
+    hostname: alarm-ws
+    working_dir: /app
+    command: python -m microservices.alarm_ws
+    environment:
+      APP_ENV: production
+      INFLUXDB_URL: http://influxdb:8086
+      INFLUXDB_TOKEN: woodox-secret-token-2024
+      INFLUXDB_ORG: wood-ox-research
+      INFLUXDB_BUCKET: sensor_raw
+      REDIS_URL: redis://redis:6379/0
+      CONFIG_DIR: /app/config
+    depends_on:
+      influxdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./config:/app/config:ro
+    restart: unless-stopped
+    profiles:
+      - distributed
+    networks:
+      - woodox-net
+
+  # ============== 前端 ==============
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: woodox-frontend
+    hostname: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    profiles:
+      - frontend
+    networks:
+      - woodox-net
+
+  # ============== 传感器模拟器 ==============
+
+  simulator-flat-empty:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: woodox-sim-001-flat
+    hostname: sim-flat-empty
+    environment:
+      DEVICE_ID: woodox_001
+      TERRAIN: flat
+      LOAD: empty
+      INTERVAL: 5
+      PROTOCOL: all
+      API_URL: http://backend:8000
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC: woodox/sensor
+      CRANK_SPEED: 30
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - simulators
+    networks:
+      - woodox-net
+
+  simulator-slope-light:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: woodox-sim-002-slope
+    hostname: sim-slope-light
+    environment:
+      DEVICE_ID: woodox_002
+      TERRAIN: gentle_slope
+      LOAD: light
+      INTERVAL: 5
+      PROTOCOL: all
+      API_URL: http://backend:8000
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC: woodox/sensor
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - simulators
+    networks:
+      - woodox-net
+
+  simulator-rocky-heavy:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: woodox-sim-003-rocky
+    hostname: sim-rocky-heavy
+    environment:
+      DEVICE_ID: woodox_003
+      TERRAIN: rocky
+      LOAD: heavy
+      INTERVAL: 5
+      PROTOCOL: all
+      API_URL: http://backend:8000
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC: woodox/sensor
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - simulators
+    networks:
+      - woodox-net
+
+  simulator-obstacle-overload:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: woodox-sim-004-obstacle
+    hostname: sim-obstacle-overload
+    environment:
+      DEVICE_ID: woodox_004
+      TERRAIN: obstacle
+      LOAD: overload
+      INTERVAL: 5
+      PROTOCOL: all
+      API_URL: http://backend:8000
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC: woodox/sensor
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - simulators
+    networks:
+      - woodox-net
+
+  simulator-multi:
+    build:
+      context: ./simulator
+      dockerfile: Dockerfile
+    container_name: woodox-sim-multi
+    hostname: sim-multi
+    command: ["--config", "/config/devices_config.json"]
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    volumes:
+      - ./simulator:/config:ro
+    restart: unless-stopped
+    profiles:
+      - sim-multi
+    networks:
+      - woodox-net
+
+  # ============== MQTT 消息桥接 (可选) ==============
+
+  mqtt-to-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: woodox-mqtt-bridge
+    hostname: mqtt-to-api
+    working_dir: /app
+    command: python -m services.mqtt_bridge
+    environment:
+      APP_ENV: production
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC: woodox/sensor/#
+      API_URL: http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+      mqtt-broker:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - mqtt-bridge
+    networks:
+      - woodox-net
+
+# ============== 数据卷 ==============
+volumes:
+  influxdb-data:
+    driver: local
+  redis-data:
+    driver: local
+  mqtt-data:
+    driver: local
+  mqtt-log:
+    driver: local
+
+# ============== 网络 ==============
+networks:
+  woodox-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
