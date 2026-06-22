@@ -1,0 +1,102 @@
+{
+  "terrain_types": {
+    "flat": {
+      "description": "平地",
+      "roughness_range": [0, 5],
+      "slope_max": 2.0,
+      "obstacle_density": 0.0,
+      "elevation_variance": 2.0,
+      "friction_coefficient": 0.6
+    },
+    "gentle_slope": {
+      "description": "缓坡",
+      "roughness_range": [5, 15],
+      "slope_max": 8.0,
+      "obstacle_density": 0.05,
+      "elevation_variance": 10.0,
+      "friction_coefficient": 0.55
+    },
+    "steep_slope": {
+      "description": "陡坡",
+      "roughness_range": [15, 40],
+      "slope_max": 25.0,
+      "obstacle_density": 0.1,
+      "elevation_variance": 30.0,
+      "friction_coefficient": 0.5
+    },
+    "rough": {
+      "description": "崎岖地形",
+      "roughness_range": [40, 100],
+      "slope_max": 15.0,
+      "obstacle_density": 0.2,
+      "elevation_variance": 50.0,
+      "friction_coefficient": 0.45
+    },
+    "obstacle_course": {
+      "description": "障碍场",
+      "roughness_range": [30, 150],
+      "slope_max": 20.0,
+      "obstacle_density": 0.4,
+      "elevation_variance": 80.0,
+      "friction_coefficient": 0.4
+    }
+  },
+  "terrain_generation": {
+    "description": "地形生成参数",
+    "default_grid_size": 50,
+    "default_resolution": 100.0,
+    "noise_amplitude": 10.0,
+    "noise_frequency_x": 0.01,
+    "noise_frequency_y": 0.02,
+    "obstacle_profile": {
+      "shape": "cosine",
+      "width_factor": 100.0,
+      "max_height_ratio": 0.7
+    }
+  },
+  "obstacle_detection": {
+    "description": "障碍物检测参数",
+    "flood_fill_threshold": 20.0,
+    "min_obstacle_area": 4,
+    "height_percentile_threshold": 0.9,
+    "roughness_window_size": 3
+  },
+  "obstacle_assessment": {
+    "description": "越障评估参数",
+    "clearance_safety_margin": 0.7,
+    "slope_safety_factor": 0.6,
+    "roughness_ceiling_height": 200.0,
+    "roughness_ceiling_slope": 150.0,
+    "min_pass_probability": 0.3,
+    "low_risk_threshold": 0.8,
+    "medium_risk_threshold": 0.5,
+    "high_risk_threshold": 0.3,
+    "recommended_speed_factors": {
+      "LOW": 1.0,
+      "MEDIUM": 0.7,
+      "HIGH": 0.4,
+      "CRITICAL": 0.2
+    }
+  },
+  "simulation_defaults": {
+    "description": "仿真默认参数",
+    "default_obstacle_height": 50.0,
+    "default_obstacle_width": 200.0,
+    "default_approach_speed": 30.0,
+    "trajectory_samples": 720,
+    "simulation_phases": ["approach", "climb", "cross", "descend"],
+    "min_clearance_warning": 5.0
+  },
+  "data_quality": {
+    "description": "数据质量评估阈值",
+    "crank_angle_valid_range": [0, 360],
+    "inclination_abnormal_threshold": 30.0,
+    "freeze_detection_samples": 5,
+    "low_variation_std": 0.1,
+    "sudden_change_factor": 3.0,
+    "quality_levels": {
+      "excellent_min": 80,
+      "fair_min": 60
+    }
+  }
+}
