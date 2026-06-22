@@ -1,19 +1,15 @@
-from app.vr_wooden_ox import (
-    VRWoodenOxDriving,
-    vr_driving_service,
-    driving_service,
+from app.vr_wooden_ox.core import VRWoodenOxDriving, vr_driving_service
+from app.vr_wooden_ox.gamepad_mapping import (
     apply_deadzone,
     apply_response_curve,
     apply_sensitivity,
     process_axis,
-    DrivingControlInput,
-    DrivingState,
 )
+from app.models.schemas import DrivingControlInput, DrivingState
 
-VirtualDrivingService = VRWoodenOxDriving
+driving_service = vr_driving_service
 
 __all__ = [
-    'VirtualDrivingService',
     'VRWoodenOxDriving',
     'vr_driving_service',
     'driving_service',
